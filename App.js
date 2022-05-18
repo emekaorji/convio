@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, StatusBar } from 'react-native';
+import {
+	StyleSheet,
+	Text,
+	View,
+	TextInput,
+	StatusBar,
+	Linking,
+	TouchableOpacity,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+
+const ExternalLink = ({ url, children, style }) => {
+	const onPress = () =>
+		Linking.canOpenURL(url).then(() => {
+			Linking.openURL(url);
+		});
+
+	return (
+		<TouchableOpacity onPress={onPress}>
+			<Text style={[style]}>{children}</Text>
+		</TouchableOpacity>
+	);
+};
 
 export default function App() {
 	const [dollar, updateDollar] = useState('1');
@@ -25,8 +46,7 @@ export default function App() {
 
 	useEffect(() => {
 		// getExchangeRate();
-		handleDollarToNairaUpdates();
-		handleNairaToDollarUpdates();
+		handleNairaToDollarUpdates(exchangeRate.toString());
 	}, []);
 	function handleDollarToNairaUpdates(text) {
 		updateDollar(text);
@@ -37,7 +57,7 @@ export default function App() {
 	function handleNairaToDollarUpdates(text) {
 		updateNaira(text);
 		var nairaToDollarValue =
-			Math.round(parseInt(text) * exchangeRate * 100) / 100 || 0;
+			Math.round((parseInt(text) / exchangeRate) * 100) / 100 || 0;
 		updateDollar(nairaToDollarValue.toString());
 	}
 
@@ -50,12 +70,12 @@ export default function App() {
 				showHideTransition={'fade'}
 				hidden={false}
 			/>
-			<View style={styles.exchangeRateContainer}>
-				<Text style={styles.exchangeRateText}>$1</Text>
+			<View style={styles.textContainer}>
+				<Text style={styles.exchangeRateText}>Current rate: $1</Text>
 				<Icon
 					style={styles.arrowRight}
 					name='arrow-right'
-					size={20}
+					size={16}
 					color='#00008f'
 				/>
 				<Text style={styles.exchangeRateText}>₦{exchangeRate}</Text>
@@ -86,6 +106,16 @@ export default function App() {
 					editable={!isLoading}
 				/>
 			</View>
+			<View style={{ ...styles.textContainer, ...styles.attribution }}>
+				<Text>Built with </Text>
+				<ExternalLink style={styles.link} url='https://expo.dev/'>
+					expo-cli
+				</ExternalLink>
+				<Text> and </Text>
+				<ExternalLink style={styles.link} url='https://currencyapi.com/'>
+					api.currencyapi.com
+				</ExternalLink>
+			</View>
 		</View>
 	);
 }
@@ -96,17 +126,18 @@ const styles = StyleSheet.create({
 		backgroundColor: '#fff',
 		justifyContent: 'center',
 		alignItems: 'center',
+		position: 'relative',
 	},
-	exchangeRateContainer: {
+	textContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
 	},
 	exchangeRateText: {
-		fontSize: 32,
+		fontSize: 16,
 	},
 	arrowRight: {
-		marginLeft: 10,
-		marginRight: 10,
+		marginLeft: 6,
+		marginRight: 6,
 	},
 	inputContainer: {
 		flexDirection: 'row',
@@ -142,5 +173,13 @@ const styles = StyleSheet.create({
 		borderTopRightRadius: 30,
 		borderBottomRightRadius: 30,
 		padding: 10,
+	},
+	attribution: {
+		position: 'absolute',
+		bottom: 50,
+	},
+	link: {
+		textDecorationLine: 'underline',
+		textDecorationColor: '#00008f',
 	},
 });
